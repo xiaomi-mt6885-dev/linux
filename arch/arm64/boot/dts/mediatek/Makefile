@@ -191,3 +191,6 @@ DTC_FLAGS_mt8395-radxa-nio-12l := -@
 
 # Always build the pearl DTB so it is available for embedding and packaging.
 always-y += mt6895-xiaomi-pearl.dtb
+
+# CEZANNE: build the board DTB used by the embedded-FDT setup.
+always-y += mt6885-xiaomi-cezanne.dtb

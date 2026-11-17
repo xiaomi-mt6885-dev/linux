@@ -89,6 +89,17 @@ $(obj)/pearl-dtb.o: $(srctree)/arch/arm64/boot/dts/mediatek/mt6895-xiaomi-pearl.
 OBJCOPYFLAGS_pearl-dtb.o := -I binary -O elf64-littleaarch64 -B aarch64 \
 	--rename-section .data=.rodata,alloc,readonly
 
+# CEZANNE: FDT switch and embedded board DTB.
+obj-$(CONFIG_ARCH_MEDIATEK) += cezanne-fdt.o
+obj-$(CONFIG_ARCH_MEDIATEK) += cezanne-dtb.o
+$(srctree)/arch/arm64/boot/dts/mediatek/mt6885-xiaomi-cezanne.dtb: FORCE
+	$(Q)$(MAKE) -C $(srctree) ARCH=arm64 LLVM=1 mediatek/mt6885-xiaomi-cezanne.dtb
+$(obj)/cezanne-dtb.o: $(srctree)/arch/arm64/boot/dts/mediatek/mt6885-xiaomi-cezanne.dtb FORCE
+	$(call if_changed,objcopy)
+OBJCOPYFLAGS_cezanne-dtb.o := -I binary -O elf64-littleaarch64 -B aarch64 \
+	--rename-section .data=.rodata,alloc,readonly
+targets += cezanne-dtb.o
+
 obj-y					+= probes/
 obj-y					+= head.o
 always-$(KBUILD_BUILTIN)		+= vmlinux.lds

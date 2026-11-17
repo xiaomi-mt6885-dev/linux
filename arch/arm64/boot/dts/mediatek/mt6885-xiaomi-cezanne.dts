@@ -1,0 +1,267 @@
+// SPDX-License-Identifier: (GPL-2.0-only OR BSD-2-Clause)
+/*
+ * Xiaomi Redmi K30 Ultra (MT6889Z, codename cezanne)
+ *
+ * The bootloader hands the kernel the stock Android device tree and then
+ * applies the stock dtbo partition on top of it.  The kernel keeps that
+ * tree for the memblock/memory setup and then switches to this embedded
+ * tree (see the CEZANNE-DTB block in arch/arm64/kernel/setup.c), so the
+ * reserved-memory windows listed here are the ones the firmware really
+ * owns at runtime.
+ */
+
+/dts-v1/;
+
+#include "mt6885.dtsi"
+
+/ {
+	model = "Xiaomi Redmi K30 Ultra";
+	compatible = "xiaomi,cezanne", "mediatek,mt6885";
+	chassis-type = "handset";
+
+	#address-cells = <2>;
+	#size-cells = <2>;
+
+	aliases {
+		serial0 = &uart0;
+	};
+
+	/*
+	 * The kernel does not re-read this property after the embedded-DTB
+	 * switch: boot_command_line was captured from LK's tree by
+	 * setup_machine_fdt().  setup.c appends the parameters that matter
+	 * (earlycon, ignore_loglevel, ramoops.mem_size=0) itself.  This is
+	 * kept as documentation and for a direct-DTB boot.
+	 */
+	chosen: chosen {
+		bootargs = "console=tty0 console=ttyS0,921600n8 earlycon=mtk8250,mmio32,0x11002000,921600n8 ignore_loglevel";
+		stdout-path = "serial0:921600n8";
+	};
+
+	/*
+	 * LK reports the real DRAM size in the tree it passes to the kernel;
+	 * that is the value used for memblock.  Keep a sane static value here
+	 * for a direct boot of this DTB.
+	 */
+	memory@40000000 {
+		device_type = "memory";
+		reg = <0x0 0x40000000 0x1 0x80000000>;
+	};
+
+	reserved-memory {
+		#address-cells = <2>;
+		#size-cells = <2>;
+		ranges;
+
+		/*
+		 * Windows owned by ATF, TEE/GZ, the modem, SCP/SSPM, the
+		 * VPU/GPU and the display.  Taken from the live device tree
+		 * of the stock Android build.  Do not allocate from them.
+		 */
+
+		dpm-reserved@ffc70000 {
+			reg = <0x0 0xffc70000 0x0 0x190000>;
+			no-map;
+		};
+
+		adsp@78000000 {
+			reg = <0x0 0x78000000 0x0 0xe30000>;
+			no-map;
+		};
+
+		ap-md-c-smem@88000000 {
+			reg = <0x0 0x88000000 0x0 0x4960000>;
+			no-map;
+		};
+
+		ap-md-nc-smem@8e000000 {
+			reg = <0x0 0x8e000000 0x0 0x1800000>;
+			no-map;
+		};
+
+		md-mem-usage@f81d0000 {
+			reg = <0x0 0xf81d0000 0x0 0x3e30000>;
+			no-map;
+		};
+
+		md-mem-usage-1@e2000000 {
+			reg = <0x0 0xe2000000 0x0 0x6cd0000>;
+			no-map;
+		};
+
+		md-mem-usage-2@e1000000 {
+			reg = <0x0 0xe1000000 0x0 0x150000>;
+			no-map;
+		};
+
+		md-mem-usage-3@de000000 {
+			reg = <0x0 0xde000000 0x0 0x20d0000>;
+			no-map;
+		};
+
+		ccci-tag-mem@bff70000 {
+			reg = <0x0 0xbff70000 0x0 0x10000>;
+			no-map;
+		};
+
+		scp-reserved@9fb00000 {
+			reg = <0x0 0x9fb00000 0x0 0x400000>;
+			no-map;
+		};
+
+		spm-reserved@77ff0000 {
+			reg = <0x0 0x77ff0000 0x0 0x10000>;
+			no-map;
+		};
+
+		vpu-binary@bd380000 {
+			reg = <0x0 0xbd380000 0x0 0x2880000>;
+			no-map;
+		};
+
+		framebuffer@7ae10000 {
+			reg = <0x0 0x7ae10000 0x0 0x1df0000>;
+			no-map;
+		};
+
+		minirdump@4d0f0000 {
+			reg = <0x0 0x4d0f0000 0x0 0x10000>;
+			no-map;
+		};
+
+		/*
+		 * LK's scan-out buffer lives inside System RAM.  Reserve it
+		 * so simplefb can request the region and fbcon can draw into
+		 * the live bootloader frame.
+		 */
+		simplefb-reserved@7e020000 {
+			reg = <0x0 0x7e020000 0x0 0x1be0000>;
+			no-map;
+		};
+
+		ramoops@4d010000 {
+			compatible = "ramoops";
+			reg = <0x0 0x4d010000 0x0 0xe0000>;
+			record-size = <0x10000>;
+			console-size = <0x40000>;
+			pmsg-size = <0x10000>;
+			ecc-size = <16>;
+			no-map;
+		};
+
+		aee-debug-kinfo@4d000000 {
+			reg = <0x0 0x4d000000 0x0 0x10000>;
+			no-map;
+		};
+
+		picachu@ffe00000 {
+			reg = <0x0 0xffe00000 0x0 0x80000>;
+			no-map;
+		};
+
+		mcupm-reserved@7dd00000 {
+			reg = <0x0 0x7dd00000 0x0 0x100000>;
+			no-map;
+		};
+
+		tee-reserved@70000000 {
+			reg = <0x0 0x70000000 0x0 0x7800000>;
+			no-map;
+		};
+
+		tee-ree-reserved@7cc00000 {
+			reg = <0x0 0x7cc00000 0x0 0xc00000>;
+			no-map;
+		};
+
+		tee-log-reserved@bfc00000 {
+			reg = <0x0 0xbfc00000 0x0 0x20000>;
+			no-map;
+		};
+
+		sspm-reserved@7feb0000 {
+			reg = <0x0 0x7feb0000 0x0 0x100000>;
+			no-map;
+		};
+
+		tee-secmem@7d800000 {
+			reg = <0x0 0x7d800000 0x0 0x400000>;
+			no-map;
+		};
+
+		atf-log-reserved@bfe00000 {
+			reg = <0x0 0xbfe00000 0x0 0x40000>;
+			no-map;
+		};
+
+		atf-ramdump-reserved@bff80000 {
+			reg = <0x0 0xbff80000 0x0 0x80000>;
+			no-map;
+		};
+
+		atf-reserved@4ce00000 {
+			reg = <0x0 0x4ce00000 0x0 0x200000>;
+			no-map;
+		};
+
+		/*
+		 * LK's PL_LOG_STORE region.  It must stay in the linear map:
+		 * the boot-stage marker writer memremaps it and cleans the
+		 * cache through the direct-map alias so the ring survives a
+		 * watchdog reset and is restored into expdb by LK.
+		 */
+		log-store@7ffbf000 {
+			reg = <0x0 0x7ffbf000 0x0 0x40000>;
+		};
+
+		gz-log@7dc00000 {
+			reg = <0x0 0x7dc00000 0x0 0x41000>;
+			no-map;
+		};
+
+		sapu-mtee-shm@7de00000 {
+			reg = <0x0 0x7de00000 0x0 0x400000>;
+			no-map;
+		};
+
+		gz-sdsp1-fw@7e200000 {
+			reg = <0x0 0x7e200000 0x0 0x400000>;
+			no-map;
+		};
+
+		gz@7e600000 {
+			reg = <0x0 0x7e600000 0x0 0x1800000>;
+			no-map;
+		};
+
+		emi-mbist-buf@7ffff000 {
+			reg = <0x0 0x7ffff000 0x0 0x1000>;
+			no-map;
+		};
+
+		dramc-rk1@1bffff000 {
+			reg = <0x1 0xbffff000 0x0 0x1000>;
+			no-map;
+		};
+
+		dramc-rk0@fffff000 {
+			reg = <0x0 0xfffff000 0x0 0x1000>;
+			no-map;
+		};
+	};
+
+	/*
+	 * Frame buffer left enabled by LK.  The scan-out base is the one
+	 * reported in /chosen/atag,videolfb-fb_base_l on this board; stride
+	 * and size match the stock fb0 (4352 bytes/line, 1080x2400,
+	 * triple buffered).  Kept at root level because LK owns /chosen.
+	 */
+	simplefb@7e020000 {
+		compatible = "simple-framebuffer";
+		reg = <0x0 0x7e020000 0x0 0x1be0000>;
+		width = <1080>;
+		height = <2400>;
+		stride = <(1088 * 4)>;
+		format = "a8r8g8b8";
+	};
+};

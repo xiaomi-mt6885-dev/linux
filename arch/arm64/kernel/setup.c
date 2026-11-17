@@ -265,7 +265,7 @@ static int __init __maybe_unused pearl_gpu_power_on(void)
 #define PEARL_TOP_PA	0x10000000UL
 #define PEARL_GPIO_PA	0x10005000UL
 
-static int __init pearl_i2c_power_on(void)
+static int __init __maybe_unused pearl_i2c_power_on(void)
 {
 	void __iomem *impc = ioremap(PEARL_IMPC_PA, 0x1000);
 	void __iomem *peri = ioremap(PEARL_PERI_PA, 0x1000);
@@ -742,7 +742,7 @@ static int __init pearl_i2c_power_on(void)
 
 	return 0;
 }
-postcore_initcall(pearl_i2c_power_on);
+/* CEZANNE: pearl i2c5 power-on is MT6895-specific */
 
 static int num_standard_resources;
 static struct resource *standard_resources;
@@ -1073,6 +1073,15 @@ static int __init pearl_lkwin_scan(unsigned long node, const char *uname,
 		base = (base << 32) | be32_to_cpup(reg++);
 	for (i = 0; i < pearl_lk_ns; i++)
 		size = (size << 32) | be32_to_cpup(reg++);
+	/*
+	 * CEZANNE: log_store must stay in the linear map.  The boot-stage
+	 * marker writer memremaps it and flushes the cache through the
+	 * direct-map alias; marking it nomap here would turn that into an
+	 * ioremap address and the cache clean would corrupt memory.  The
+	 * cezanne DTB already reserves the region without nomap.
+	 */
+	if (base == 0x7ffbf000UL)
+		return 0;
 	if (!size || pearl_lk_win_cnt >= PEARL_LKWIN_MAX)
 		return 0;
 	pearl_lk_wins[pearl_lk_win_cnt].base = base;
@@ -1096,7 +1105,7 @@ static int __init pearl_lkwin_scan(unsigned long node, const char *uname,
 #define PEARL_CCIF2_MD_PA	0x1023D000UL
 #define PEARL_CCIF2_CHDATA	0x100UL
 
-static void __init pearl_early_ccif2_publish(void)
+static void __init __maybe_unused pearl_early_ccif2_publish(void)
 {
 	void __iomem *ap, *md;
 	u32 i;
@@ -1184,7 +1193,7 @@ void __init __no_sanitize_address setup_arch(char **cmdline_p)
 	pearl_marker_early_init();
 
 	/* PEARL-r159: publish before the SCP firmware check at t≈3.66s */
-	pearl_early_ccif2_publish();
+	/* CEZANNE: pearl CCIF2 publish is MT6895-specific */
 
 	setup_machine_fdt(__fdt_pointer);
 
@@ -1315,6 +1324,16 @@ void __init __no_sanitize_address setup_arch(char **cmdline_p)
 	 * Initialise the static keys early as they may be enabled by the
 	 * cpufeature code and early parameters.
 	 */
+	/*
+	 * CEZANNE: the block above installed the pearl board tree and
+	 * reserved LK's dynamic windows.  MT6885 needs its own tree;
+	 * switch to it before reserved-memory scanning and driver
+	 * population.
+	 */
+#ifdef CONFIG_ARCH_MEDIATEK
+	cezanne_fdt_setup();
+#endif
+
 	jump_label_init();
 	parse_early_param();
 

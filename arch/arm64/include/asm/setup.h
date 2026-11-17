@@ -41,4 +41,8 @@ static inline bool arch_parse_debug_rodata(char *arg)
 }
 #define arch_parse_debug_rodata arch_parse_debug_rodata
 
+#ifdef CONFIG_ARCH_MEDIATEK
+void cezanne_fdt_setup(void);
+#endif
+
 #endif
