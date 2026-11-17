@@ -27,6 +27,7 @@
 #include <linux/panic_notifier.h>
 #include <linux/proc_fs.h>
 #include <linux/memblock.h>
+#include <linux/of.h>
 #include <linux/of_fdt.h>
 #include <linux/libfdt.h>
 #include <linux/sizes.h>
@@ -1162,7 +1163,7 @@ static void __init pearl_reserve_lk_reserved_mem(void)
 	int i;
 
 	of_scan_flat_dt(pearl_lkwin_scan, NULL);
-	pr_info("PEARL-LKRMEM: LK reserved %d window(s), #a=%d #s=%d\n",
+	pr_info("CEZANNE-LKRMEM: LK reserved %d window(s), #a=%d #s=%d\n",
 		pearl_lk_win_cnt, pearl_lk_na, pearl_lk_ns);
 	for (i = 0; i < pearl_lk_win_cnt; i++) {
 		phys_addr_t b = pearl_lk_wins[i].base;
@@ -1171,7 +1172,7 @@ static void __init pearl_reserve_lk_reserved_mem(void)
 
 		memblock_reserve(b, sz);
 		memblock_mark_nomap(b, sz);
-		pr_info("PEARL-LKRMEM: [%02d] %pa-%pa (%pa) reserved+nomap\n",
+		pr_info("CEZANNE-LKRMEM: [%02d] %pa-%pa (%pa) reserved+nomap\n",
 			i, &b, &e, &sz);
 	}
 }
@@ -1198,7 +1199,8 @@ void __init __no_sanitize_address setup_arch(char **cmdline_p)
 	setup_machine_fdt(__fdt_pointer);
 
 	/* PEARL-DTB: save the LVTS calibration table before the embedded DTB overwrites LK's FDT below. */
-	pearl_capture_lk_devinfo(initial_boot_params);
+	if (of_machine_is_compatible("mediatek,mt6895"))
+		pearl_capture_lk_devinfo(initial_boot_params);
 
 	/* PEARL-LKRMEM: reserve LK's own windows before we swap in our DTB. */
 	pearl_reserve_lk_reserved_mem();
@@ -1216,6 +1218,8 @@ void __init __no_sanitize_address setup_arch(char **cmdline_p)
 	extern char _binary_arch_arm64_boot_dts_mediatek_mt6895_xiaomi_pearl_dtb_start[];
 	extern char _binary_arch_arm64_boot_dts_mediatek_mt6895_xiaomi_pearl_dtb_end[];
 	if (acpi_disabled) {
+		/* The pearl board tree is only meaningful on MT6895. */
+		if (of_machine_is_compatible("mediatek,mt6895")) {
 		void *lk_fdt_saved = initial_boot_params;
 
 		pr_info("PEARL-DTB: overriding LK FDT with embedded "
@@ -1270,6 +1274,7 @@ void __init __no_sanitize_address setup_arch(char **cmdline_p)
 			if (pearl_ccci_lk_prop_len == 0)
 				pr_info("PEARL-LKINFO: modem_info not found (off=%d, size=%lu)\n",
 					off, lk_sz);
+		}
 		}
 
 		/*
@@ -1331,13 +1336,16 @@ void __init __no_sanitize_address setup_arch(char **cmdline_p)
 	 * population.
 	 */
 #ifdef CONFIG_ARCH_MEDIATEK
-	cezanne_fdt_setup();
+	if (!strstr(boot_command_line, "cezanne.use_lk_dtb"))
+		cezanne_fdt_setup();
 #endif
 
 	jump_label_init();
 	parse_early_param();
+	pr_info("CEZANNE-STEP: parse_early_param done\n");
 
 	dynamic_scs_init();
+	pr_info("CEZANNE-STEP: dynamic_scs_init done\n");
 
 	/*
 	 * The primary CPU enters the kernel with all DAIF exceptions masked.
@@ -1357,9 +1365,11 @@ void __init __no_sanitize_address setup_arch(char **cmdline_p)
 	 * point to zero page to avoid speculatively fetching new entries.
 	 */
 	cpu_uninstall_idmap();
+	pr_info("CEZANNE-STEP: cpu_uninstall_idmap done\n");
 
 	xen_early_init();
 	efi_init();
+	pr_info("CEZANNE-STEP: efi_init done\n");
 
 	if (!efi_enabled(EFI_BOOT)) {
 		if ((u64)_text % MIN_KIMG_ALIGN)
@@ -1369,8 +1379,10 @@ void __init __no_sanitize_address setup_arch(char **cmdline_p)
 	}
 
 	arm64_memblock_init();
+	pr_info("CEZANNE-STEP: arm64_memblock_init done\n");
 
 	paging_init();
+	pr_info("CEZANNE-STEP: paging_init done\n");
 
 	acpi_table_upgrade();
 
@@ -1379,8 +1391,10 @@ void __init __no_sanitize_address setup_arch(char **cmdline_p)
 
 	if (acpi_disabled)
 		unflatten_device_tree();
+	pr_info("CEZANNE-STEP: unflatten_device_tree done\n");
 
 	bootmem_init();
+	pr_info("CEZANNE-STEP: bootmem_init done\n");
 
 	kasan_init();
 	request_standard_resources();
@@ -1396,6 +1410,7 @@ void __init __no_sanitize_address setup_arch(char **cmdline_p)
 
 	init_bootcpu_ops();
 	smp_init_cpus();
+	pr_info("CEZANNE-STEP: smp_init_cpus done\n");
 	smp_build_mpidr_hash();
 
 #ifdef CONFIG_ARM64_SW_TTBR0_PAN

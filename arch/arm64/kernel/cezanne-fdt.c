@@ -15,6 +15,7 @@
 #include <linux/acpi.h>
 #include <linux/init.h>
 #include <linux/libfdt.h>
+#include <linux/of.h>
 #include <linux/of_fdt.h>
 #include <linux/printk.h>
 #include <linux/string.h>
@@ -30,6 +31,9 @@ void __init cezanne_fdt_setup(void)
 	void *lk_fdt = initial_boot_params;
 
 	if (!acpi_disabled || !lk_fdt)
+		return;
+
+	if (!of_machine_is_compatible("mediatek,mt6885"))
 		return;
 
 	pr_info("CEZANNE-DTB: replacing LK FDT %px with embedded mt6885-xiaomi-cezanne.dtb (%zu bytes)\n",

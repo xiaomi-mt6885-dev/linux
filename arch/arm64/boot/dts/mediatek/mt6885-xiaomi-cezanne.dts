@@ -15,8 +15,8 @@
 #include "mt6885.dtsi"
 
 / {
-	model = "Xiaomi Redmi K30 Ultra";
-	compatible = "xiaomi,cezanne", "mediatek,mt6885";
+	model = "Xiaomi Redmi K30 Ultra (MT6889 Dimensity 1000+)";
+	compatible = "xiaomi,cezanne", "mediatek,mt6889", "mediatek,mt6885";
 	chassis-type = "handset";
 
 	#address-cells = <2>;

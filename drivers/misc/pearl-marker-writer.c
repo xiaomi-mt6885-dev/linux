@@ -144,7 +144,7 @@ void __init pearl_marker_early_init(void)
 {
 	pearl_mr_base = early_ioremap(PEARL_MRDUMP_PA, PEARL_MRDUMP_SZ);
 	if (!pearl_mr_base) {
-		pr_info("pearl-marker-writer: early_ioremap 0x%08lx failed\n",
+		pr_info("cezanne-marker-writer: early_ioremap 0x%08lx failed\n",
 			PEARL_MRDUMP_PA);
 		return;
 	}
@@ -154,7 +154,7 @@ void __init pearl_marker_early_init(void)
 	writel(0, pearl_mr_base + 0x0004);
 	writel(0, pearl_mr_base + 0x0008);
 	writel(0, pearl_mr_base + 0x1000);
-	pr_info("pearl-marker-writer: XAGR ring armed at 0x%08lx\n",
+	pr_info("cezanne-marker-writer: XAGR ring armed at 0x%08lx\n",
 		PEARL_MRDUMP_PA);
 	pearl_marker_stage(1);
 }
@@ -201,14 +201,14 @@ static int __init pearl_marker_w_late_init(void)
 			dcache_clean_poc((unsigned long)pearl_mr_base,
 					 (unsigned long)pearl_mr_base +
 					 PEARL_MRDUMP_SZ);
-			pearl_marker_put("marker writer: permanent mapping armed\n");
+			pearl_marker_put("cezanne marker writer: permanent mapping armed\n");
 		}
 	}
-	pearl_marker_put("marker writer built-in init\n");
+	pearl_marker_put("cezanne marker writer built-in init\n");
 	register_module_notifier(&pearl_marker_nb);
 	return 0;
 }
 core_initcall(pearl_marker_w_late_init);
 
 MODULE_LICENSE("GPL");
-MODULE_DESCRIPTION("pearl boot-stage marker writer (XAGR ring), built-in");
+MODULE_DESCRIPTION("cezanne boot-stage marker writer (XAGR ring), built-in");
