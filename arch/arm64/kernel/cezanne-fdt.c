@@ -33,7 +33,7 @@ void __init cezanne_fdt_setup(void)
 	if (!acpi_disabled || !lk_fdt)
 		return;
 
-	if (!of_machine_is_compatible("mediatek,mt6885"))
+	if (!of_flat_dt_is_compatible(of_get_flat_dt_root(), "mediatek,mt6885"))
 		return;
 
 	pr_info("CEZANNE-DTB: replacing LK FDT %px with embedded mt6885-xiaomi-cezanne.dtb (%zu bytes)\n",
@@ -50,7 +50,8 @@ void __init cezanne_fdt_setup(void)
 		strncat(boot_command_line, " ignore_loglevel",
 			COMMAND_LINE_SIZE - strlen(boot_command_line) - 1);
 
-	if (!strstr(boot_command_line, "earlycon"))
+	if (!strstr(boot_command_line, "cezanne.no_earlycon") &&
+	    !strstr(boot_command_line, "earlycon"))
 		strncat(boot_command_line,
 			" earlycon=mtk8250,mmio32,0x11002000,921600n8",
 			COMMAND_LINE_SIZE - strlen(boot_command_line) - 1);

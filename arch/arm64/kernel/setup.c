@@ -1199,7 +1199,7 @@ void __init __no_sanitize_address setup_arch(char **cmdline_p)
 	setup_machine_fdt(__fdt_pointer);
 
 	/* PEARL-DTB: save the LVTS calibration table before the embedded DTB overwrites LK's FDT below. */
-	if (of_machine_is_compatible("mediatek,mt6895"))
+	if (of_flat_dt_is_compatible(of_get_flat_dt_root(), "mediatek,mt6895"))
 		pearl_capture_lk_devinfo(initial_boot_params);
 
 	/* PEARL-LKRMEM: reserve LK's own windows before we swap in our DTB. */
@@ -1219,7 +1219,7 @@ void __init __no_sanitize_address setup_arch(char **cmdline_p)
 	extern char _binary_arch_arm64_boot_dts_mediatek_mt6895_xiaomi_pearl_dtb_end[];
 	if (acpi_disabled) {
 		/* The pearl board tree is only meaningful on MT6895. */
-		if (of_machine_is_compatible("mediatek,mt6895")) {
+		if (of_flat_dt_is_compatible(of_get_flat_dt_root(), "mediatek,mt6895")) {
 		void *lk_fdt_saved = initial_boot_params;
 
 		pr_info("PEARL-DTB: overriding LK FDT with embedded "
