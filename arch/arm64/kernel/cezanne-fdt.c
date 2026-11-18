@@ -23,11 +23,11 @@
 
 void __init cezanne_fdt_setup(void)
 {
-	extern char _binary_arch_arm64_boot_dts_mediatek_mt6885_xiaomi_cezanne_dtb_start[];
-	extern char _binary_arch_arm64_boot_dts_mediatek_mt6885_xiaomi_cezanne_dtb_end[];
+	extern char cezanne_dtb_start[];
+	extern char cezanne_dtb_end[];
 	size_t dtb_size =
-		(size_t)(_binary_arch_arm64_boot_dts_mediatek_mt6885_xiaomi_cezanne_dtb_end -
-			 _binary_arch_arm64_boot_dts_mediatek_mt6885_xiaomi_cezanne_dtb_start);
+		(size_t)(cezanne_dtb_end -
+			 cezanne_dtb_start);
 	void *lk_fdt = initial_boot_params;
 
 	if (!acpi_disabled || !lk_fdt)
@@ -38,8 +38,7 @@ void __init cezanne_fdt_setup(void)
 
 	pr_info("CEZANNE-DTB: replacing LK FDT %px with embedded mt6885-xiaomi-cezanne.dtb (%zu bytes)\n",
 		lk_fdt, dtb_size);
-	initial_boot_params =
-		_binary_arch_arm64_boot_dts_mediatek_mt6885_xiaomi_cezanne_dtb_start;
+	initial_boot_params = cezanne_dtb_start;
 
 	/*
 	 * boot_command_line was captured from LK's tree by
