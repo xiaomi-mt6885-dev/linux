@@ -139,9 +139,15 @@
 			no-map;
 		};
 
-		ramoops@4d010000 {
+		/*
+		 * pstore lives away from LK's own 0x4d010000 ram_console area.
+		 * 0x1b0000000 is inside the 6 GiB System RAM window, above the
+		 * firmware carve-outs and below the dramc-rk1 scratch page, so
+		 * the bootloader does not rewrite it between boots.
+		 */
+		ramoops@1b0000000 {
 			compatible = "ramoops";
-			reg = <0x0 0x4d010000 0x0 0xe0000>;
+			reg = <0x1 0xb0000000 0x0 0xe0000>;
 			record-size = <0x10000>;
 			console-size = <0x40000>;
 			pmsg-size = <0x10000>;
